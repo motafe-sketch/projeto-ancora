@@ -1,4 +1,5 @@
 import os
+from datetime import timezone, timedelta
 import mysql.connector
 
 class Sistema:
@@ -31,9 +32,11 @@ class Sistema:
             "FROM usuario ORDER BY id_usuario DESC"
         )
         usuarios = cursor.fetchall()
+        fuso_brt = timezone(timedelta(hours=-3))
         for u in usuarios:
             if u.get("data_cadastro"):
-                u["data_cadastro"] = u["data_cadastro"].strftime("%d/%m/%Y %H:%M")
+                dt_utc = u["data_cadastro"].replace(tzinfo=timezone.utc)
+                u["data_cadastro"] = dt_utc.astimezone(fuso_brt).strftime("%d/%m/%Y %H:%M")
         cursor.close()
         conn.close()
         return usuarios
