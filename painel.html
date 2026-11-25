@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <title>Projeto ÂNCORA - Painel de Registros</title>
+    <style>
+        .container-painel {
+            width: 780px;
+            max-width: 95vw;
+        }
+        .tabela-wrapper {
+            margin-top: 20px;
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        th {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 700;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <main class="container container-painel">
+        <h1>Painel Âncora</h1>
+        <p style="text-align: center; font-size: 14px; margin-top: -15px; margin-bottom: 15px; opacity: 0.9;">
+            Registros persistidos em tempo real no MySQL (Nuvem)
+        </p>
+
+        <div id="statusPainel" class="mensagem"></div>
+
+        <div class="tabela-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Telefone</th>
+                        <th>Data de Cadastro</th>
+                    </tr>
+                </thead>
+                <tbody id="listaUsuarios">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Carregando registros...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="register-link" style="margin-top: 24px;">
+            <p><a href="index.html"><i class="bx bx-arrow-back"></i> Voltar para o formulário de cadastro</a></p>
+        </div>
+    </main>
+
+    <script>
+        async function carregarUsuarios() {
+            const tbody = document.getElementById("listaUsuarios");
+            const statusBox = document.getElementById("statusPainel");
+
+            try {
+                const response = await fetch("/api/usuarios");
+                const data = await response.json();
+
+                if (!response.ok) {
+                    statusBox.textContent = data.mensagem || "Erro ao consultar o banco.";
+                    statusBox.className = "mensagem erro";
+                    return;
+                }
+
+                if (!data.usuarios || data.usuarios.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum registro encontrado.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.usuarios.map(u => `
+                    <tr>
+                        <td>#${u.id_usuario}</td>
+                        <td>${u.nome}</td>
+                        <td>${u.email}</td>
+                        <td>${u.telefone || "-"}</td>
+                        <td>${u.data_cadastro || "-"}</td>
+                    </tr>
+                `).join("");
+            } catch (error) {
+                statusBox.textContent = "Falha de comunicação com a API.";
+                statusBox.className = "mensagem erro";
+            }
+        }
+
+        carregarUsuarios();
+    </script>
+</body>
+</html>

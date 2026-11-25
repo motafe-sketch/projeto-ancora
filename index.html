@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <title>Projeto ÂNCORA - Cadastro</title>
+</head>
+<body>
+    <main class="container">
+        <form id="formCadastro" novalidate>
+            <h1>Cadastro</h1>
+            <p style="text-align: center; font-size: 13px; margin-top: -15px; margin-bottom: 18px; opacity: 0.9;">
+                Piloto Acadêmico (PIME) — Utilize dados fictícios para teste
+            </p>
+
+            <div class="input-box">
+                <input type="text" id="nome" placeholder="Nome completo" required>
+                <i class="bx bxs-user"></i>
+            </div>
+
+            <div class="input-box">
+                <input type="text" id="email" placeholder="E-mail" required>
+                <i class="bx bxs-envelope"></i>
+            </div>
+
+            <div class="input-box">
+                <input type="tel" id="telefone" inputmode="numeric" placeholder="Telefone com DDD" maxlength="14" required>
+                <i class="bx bxs-phone"></i>
+            </div>
+
+            <div class="input-box">
+                <input type="password" id="senha" placeholder="Senha" required>
+                <i class="bx bxs-lock-alt"></i>
+            </div>
+
+            <div class="input-box">
+                <input type="password" id="confirma_senha" placeholder="Confirmar senha" required>
+                <i class="bx bxs-lock-alt"></i>
+            </div>
+
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox" id="termos" required>
+                    Li e aceito os termos de uso
+                </label>
+            </div>
+
+            <div id="mensagem" class="mensagem"></div>
+
+            <button type="submit" id="btnSubmit">Cadastrar</button>
+
+            <div class="register-link">
+                <p>Já testou o cadastro? <a href="painel.html">Acessar painel de registros</a></p>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        const inputTelefone = document.getElementById("telefone");
+
+        inputTelefone.addEventListener("input", function(e) {
+            let valor = e.target.value.replace(/\D/g, "").slice(0, 11);
+
+            if (valor.length === 0) {
+                e.target.value = "";
+            } else if (valor.length <= 2) {
+                e.target.value = "(" + valor;
+            } else if (valor.length <= 6) {
+                e.target.value = "(" + valor.slice(0, 2) + ")" + valor.slice(2);
+            } else if (valor.length <= 10) {
+                e.target.value = "(" + valor.slice(0, 2) + ")" + valor.slice(2, 6) + "-" + valor.slice(6);
+            } else {
+                e.target.value = "(" + valor.slice(0, 2) + ")" + valor.slice(2, 7) + "-" + valor.slice(7);
+            }
+        });
+
+        document.getElementById("formCadastro").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const msgBox = document.getElementById("mensagem");
+            const btnSubmit = document.getElementById("btnSubmit");
+
+            const payload = {
+                nome: document.getElementById("nome").value.trim(),
+                email: document.getElementById("email").value.trim(),
+                telefone: inputTelefone.value.replace(/\D/g, ""),
+                senha: document.getElementById("senha").value,
+                confirma_senha: document.getElementById("confirma_senha").value,
+                termos: document.getElementById("termos").checked
+            };
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = "Cadastrando...";
+
+            try {
+                const response = await fetch("/api/cadastrar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                msgBox.textContent = data.mensagem;
+                msgBox.className = response.ok ? "mensagem sucesso" : "mensagem erro";
+
+                if (response.ok) {
+                    document.getElementById("formCadastro").reset();
+                    setTimeout(() => {
+                        window.location.href = "painel.html";
+                    }, 1200);
+                }
+            } catch (error) {
+                msgBox.textContent = "Erro de conexão com a API do servidor.";
+                msgBox.className = "mensagem erro";
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Cadastrar";
+            }
+        });
+    </script>
+</body>
+</html>
